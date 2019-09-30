@@ -19,6 +19,9 @@ public class RulingEntity {
     @Column(name = "name")
     private String name;
 
+    public RulingEntity() {
+    }
+
     public RulingEntity(String name) {
         this.name = name;
     }
@@ -37,5 +40,34 @@ public class RulingEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public static final class RulingEntityBuilder {
+        private Integer id;
+        private String name;
+
+        private RulingEntityBuilder() {
+        }
+
+        public static RulingEntityBuilder of() {
+            return new RulingEntityBuilder();
+        }
+
+        public RulingEntityBuilder withId(Integer id) {
+            this.id = id;
+            return this;
+        }
+
+        public RulingEntityBuilder withName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public RulingEntity build() {
+            RulingEntity rulingEntity = new RulingEntity();
+            rulingEntity.setId(id);
+            rulingEntity.setName(name);
+            return rulingEntity;
+        }
     }
 }
