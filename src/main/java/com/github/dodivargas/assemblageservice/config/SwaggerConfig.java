@@ -17,7 +17,7 @@ public class SwaggerConfig {
     public Docket SwaggerVoteApi(){
         return new Docket(SWAGGER_2)
                 .select()
-                .apis(basePackage("com.github.dodivargas.assemblageservice.api.rest.v1"))
+                .apis(basePackage("com.github.dodivargas.assemblageservice"))
                 .paths(regex(".*"))
                 .build();
     }
