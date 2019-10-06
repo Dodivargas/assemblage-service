@@ -56,9 +56,10 @@ public class VoteEntity {
         this.inFavor = inFavor;
     }
 
+
     public static final class VoteEntityBuilder {
         private Integer id;
-        private RulingStatusEntity rulingId;
+        private RulingStatusEntity rulingStatusId;
         private String taxId;
         private Boolean inFavor;
 
@@ -75,7 +76,7 @@ public class VoteEntity {
         }
 
         public VoteEntityBuilder withRulingId(RulingStatusEntity rulingId) {
-            this.rulingId = rulingId;
+            this.rulingStatusId = rulingId;
             return this;
         }
 
@@ -92,7 +93,7 @@ public class VoteEntity {
         public VoteEntity build() {
             VoteEntity voteEntity = new VoteEntity();
             voteEntity.setId(id);
-            voteEntity.setRulingStatusId(rulingId);
+            voteEntity.setRulingStatusId(rulingStatusId);
             voteEntity.setTaxId(taxId);
             voteEntity.setInFavor(inFavor);
             return voteEntity;

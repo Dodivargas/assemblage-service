@@ -4,6 +4,7 @@ package com.github.dodivargas.assemblageservice.api.rest.v1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dodivargas.assemblageservice.api.rest.v1.request.RulingRequest;
 import com.github.dodivargas.assemblageservice.api.rest.v1.response.RulingResponse;
+import com.github.dodivargas.assemblageservice.api.rest.v1.response.RulingResultResponse;
 import com.github.dodivargas.assemblageservice.service.RulingService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -21,7 +22,7 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/v1/ruling")
-public class RullingApi {
+public class RulingApi {
 
     private RulingService rulingService;
     private ObjectMapper objectMapper;
@@ -32,7 +33,7 @@ public class RullingApi {
     private static final String CREATED_MESSAGE = "Operação foi realizada e resultou em um novo recurso.";
 
 
-    public RullingApi(RulingService rulingService, ObjectMapper objectMapper) {
+    public RulingApi(RulingService rulingService, ObjectMapper objectMapper) {
         this.rulingService = rulingService;
         this.objectMapper = objectMapper;
     }
@@ -56,5 +57,11 @@ public class RullingApi {
                 .status(HttpStatus.CREATED).build();
     }
 
-
+    @ApiOperation(value = "Get final result or partial result.")
+    @ApiResponses(@ApiResponse(code = OK, message = OK_MESSAGE))
+    @PostMapping(value = "{id}/result")
+    public ResponseEntity<?> getRulingResult(@PathVariable("id") Integer rulingId) {
+        return ResponseEntity
+                .ok(objectMapper.convertValue(rulingService.getRuleResult(rulingId), RulingResultResponse.class));
+    }
 }

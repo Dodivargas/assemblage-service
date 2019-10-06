@@ -6,7 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.util.Date;
 
@@ -17,7 +17,7 @@ public class RulingStatusEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "ruling_id")
     private RulingEntity rulingId;
     @Column(name = "open_for_vote")
@@ -26,14 +26,6 @@ public class RulingStatusEntity {
     private Date expirationDate;
     @Column(name = "result")
     private Boolean result;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public RulingEntity getRulingId() {
         return rulingId;
@@ -109,7 +101,6 @@ public class RulingStatusEntity {
 
         public RulingStatusEntity build() {
             RulingStatusEntity rulingStatusEntity = new RulingStatusEntity();
-            rulingStatusEntity.setId(id);
             rulingStatusEntity.setRulingId(rulingId);
             rulingStatusEntity.setOpenForVote(openForVote);
             rulingStatusEntity.setExpirationDate(expirationDate);

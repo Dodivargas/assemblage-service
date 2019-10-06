@@ -12,35 +12,34 @@ import com.github.dodivargas.assemblageservice.repository.VoteRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
 @Service
 public class VoteService {
 
     private RulingStatusRepository rulingStatusRepository;
     private VoteRepository voteRepository;
+    private RulingService rulingService;
 
-    public VoteService(RulingStatusRepository rulingStatusRepository, VoteRepository voteRepository) {
+
+    public VoteService(RulingStatusRepository rulingStatusRepository, VoteRepository voteRepository, RulingService rulingService) {
         this.rulingStatusRepository = rulingStatusRepository;
         this.voteRepository = voteRepository;
+        this.rulingService = rulingService;
     }
 
     public void createVote(Vote vote) {
         RulingStatusEntity rulingStatusEntity = rulingStatusRepository.findByRulingId(RulingEntity.RulingEntityBuilder.of().withId(vote.getRulingId()).build())
                 .orElseThrow(RuleNotOpenForVoteException::new);
-        validateRuling(rulingStatusEntity);
+        validateRulingIsOpenForVote(rulingStatusEntity);
         if (rulingStatusEntity.getOpenForVote()) {
             saveVote(vote, rulingStatusEntity);
         }
     }
 
-    private void validateRuling(RulingStatusEntity rulingStatusEntity) {
+    private void validateRulingIsOpenForVote(RulingStatusEntity rulingStatusEntity) {
         if (!rulingStatusEntity.getOpenForVote()) {
             throw new ClosedRulingException();
         }
-        LocalDateTime expirationDate = LocalDateTime.ofInstant(rulingStatusEntity.getExpirationDate().toInstant(), ZoneId.systemDefault());
-        if (expirationDate.isBefore(LocalDateTime.now())) {
+        if (rulingService.expirationDateIsExceeded(rulingStatusEntity)) {
             rulingStatusEntity.setOpenForVote(false);
             rulingStatusRepository.save(rulingStatusEntity);
             throw new ClosedRulingException();
@@ -49,15 +48,17 @@ public class VoteService {
 
     private void saveVote(Vote vote, RulingStatusEntity rulingStatusEntity) {
         try {
-            VoteEntity voteEntity = VoteEntity.VoteEntityBuilder.of()
-                    .withRulingId(rulingStatusEntity)
-                    .withTaxId(vote.getTaxId())
-                    .withInFavor(vote.getInFavor()).build();
+            VoteEntity voteEntity = buildVoteEntity(vote, rulingStatusEntity);
             voteRepository.save(voteEntity);
         } catch (DataIntegrityViolationException e) {
             throw new DuplicateVoteException();
         }
     }
 
-
+    private VoteEntity buildVoteEntity(Vote vote, RulingStatusEntity rulingStatusEntity) {
+        return VoteEntity.VoteEntityBuilder.of()
+                .withRulingId(rulingStatusEntity)
+                .withTaxId(vote.getTaxId())
+                .withInFavor(vote.getInFavor()).build();
+    }
 }

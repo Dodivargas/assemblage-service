@@ -2,7 +2,16 @@ package com.github.dodivargas.assemblageservice.dto;
 
 public class Ruling {
 
+    private Integer id;
     private String name;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -12,10 +21,4 @@ public class Ruling {
         this.name = name;
     }
 
-    @Override
-    public String toString() {
-        return "RulingRequest{" +
-                "name='" + name + '\'' +
-                '}';
-    }
 }
