@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dodivargas.assemblageservice.dto.Ruling;
 import com.github.dodivargas.assemblageservice.entity.RulingEntity;
 import com.github.dodivargas.assemblageservice.entity.RulingStatusEntity;
+import com.github.dodivargas.assemblageservice.exception.RulingNotFoundException;
 import com.github.dodivargas.assemblageservice.repository.RulingRepository;
 import com.github.dodivargas.assemblageservice.repository.RulingStatusRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +35,7 @@ public class RulingService {
 
     public void openRuleForVoting(Integer rulingId, Integer openedTime) {
         RulingEntity rulingEntity = rulingRepository.findById(rulingId)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(RulingNotFoundException::new);
         RulingStatusEntity rulingStatusEntity = RulingStatusEntity.RulingStatusEntityBuilder.of()
                 .withExpirationDate(getExpirationDate(openedTime))
                 .withRulingId(rulingEntity)

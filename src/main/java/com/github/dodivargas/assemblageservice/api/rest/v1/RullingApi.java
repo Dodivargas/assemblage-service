@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/v1/ruling")
 public class RullingApi {
@@ -38,7 +40,7 @@ public class RullingApi {
     @ApiOperation(value = "Create a ruling")
     @ApiResponses(@ApiResponse(code = OK, message = OK_MESSAGE))
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody RulingRequest rulingRequest) {
+    public ResponseEntity<?> create(@RequestBody @Valid RulingRequest rulingRequest) {
         return ResponseEntity
                 .ok(objectMapper.convertValue(rulingService.create(rulingRequest.getName()), RulingResponse.class));
     }
