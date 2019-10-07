@@ -1,4 +1,4 @@
-package com.github.dodivargas.assemblageservice.config;
+package com.github.dodivargas.assemblageservice.rabbitmq;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;

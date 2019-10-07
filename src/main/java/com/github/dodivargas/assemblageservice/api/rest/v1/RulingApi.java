@@ -1,6 +1,7 @@
 package com.github.dodivargas.assemblageservice.api.rest.v1;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dodivargas.assemblageservice.api.rest.v1.request.RulingRequest;
 import com.github.dodivargas.assemblageservice.api.rest.v1.response.RulingResponse;
@@ -60,7 +61,7 @@ public class RulingApi {
     @ApiOperation(value = "Get final result or partial result.")
     @ApiResponses(@ApiResponse(code = OK, message = OK_MESSAGE))
     @PostMapping(value = "{id}/result")
-    public ResponseEntity<?> getRulingResult(@PathVariable("id") Integer rulingId) {
+    public ResponseEntity<?> getRulingResult(@PathVariable("id") Integer rulingId) throws JsonProcessingException {
         return ResponseEntity
                 .ok(objectMapper.convertValue(rulingService.getRuleResult(rulingId), RulingResultResponse.class));
     }

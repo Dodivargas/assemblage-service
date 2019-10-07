@@ -1,5 +1,6 @@
 package com.github.dodivargas.assemblageservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dodivargas.assemblageservice.dto.RuleResult;
@@ -7,6 +8,7 @@ import com.github.dodivargas.assemblageservice.dto.Ruling;
 import com.github.dodivargas.assemblageservice.entity.RulingEntity;
 import com.github.dodivargas.assemblageservice.exception.RulingNeverOpenForVoteException;
 import com.github.dodivargas.assemblageservice.exception.RulingNotFoundException;
+import com.github.dodivargas.assemblageservice.rabbitmq.RulingProducer;
 import com.github.dodivargas.assemblageservice.repository.RulingRepository;
 import com.github.dodivargas.assemblageservice.repository.RulingStatusRepository;
 import com.github.dodivargas.assemblageservice.repository.VoteRepository;
@@ -29,6 +31,7 @@ public class RulingServiceTest {
     private RulingRepository rulingRepository;
     private RulingStatusRepository rulingStatusRepository;
     private VoteRepository voteRepository;
+    private RulingProducer rulingProducer;
     private Integer openedTimeInMinutes;
 
 
@@ -37,9 +40,10 @@ public class RulingServiceTest {
         this.rulingStatusRepository = Mockito.mock(RulingStatusRepository.class);
         this.voteRepository = Mockito.mock(VoteRepository.class);
         this.rulingRepository = Mockito.mock(RulingRepository.class);
+        this.rulingProducer = Mockito.mock(RulingProducer.class);
         this.openedTimeInMinutes = 1;
         ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        this.rulingService = new RulingService(rulingRepository, rulingStatusRepository, voteRepository, objectMapper, openedTimeInMinutes);
+        this.rulingService = new RulingService(rulingRepository, rulingStatusRepository, voteRepository, rulingProducer, objectMapper, openedTimeInMinutes);
     }
 
     @Test
@@ -72,7 +76,7 @@ public class RulingServiceTest {
 
 
     @Test
-    public void getRuleResultForRuleOpenForVoteAndRuleAprovedThenReturnSuccess() {
+    public void getRuleResultForRuleOpenForVoteAndRuleAprovedThenReturnSuccess() throws JsonProcessingException {
         RulingEntity rulingEntity = buildRulingEntity();
         when(rulingRepository.findById(1)).thenReturn(Optional.of(rulingEntity));
         when(rulingStatusRepository.findByRulingId(rulingEntity)).thenReturn(Optional.of(buildRulingStatusEntityWithExpirationDateInFuture()));
@@ -94,7 +98,7 @@ public class RulingServiceTest {
     }
 
     @Test
-    public void getRuleResultForRuleNotOpenForVoteAndRuleAprovedThenReturnSuccess() {
+    public void getRuleResultForRuleNotOpenForVoteAndRuleAprovedThenReturnSuccess() throws JsonProcessingException {
         RulingEntity rulingEntity = buildRulingEntity();
         when(rulingRepository.findById(1)).thenReturn(Optional.of(rulingEntity));
         when(rulingStatusRepository.findByRulingId(rulingEntity)).thenReturn(Optional.of(buildRulingStatusEntityWithExpirationDateInPast()));
@@ -109,7 +113,7 @@ public class RulingServiceTest {
     }
 
     @Test
-    public void getRuleResultForRuleNotOpenForVoteAndRuleUnAprovedThenReturnSuccess() {
+    public void getRuleResultForRuleNotOpenForVoteAndRuleUnAprovedThenReturnSuccess() throws JsonProcessingException {
         RulingEntity rulingEntity = buildRulingEntity();
         when(rulingRepository.findById(1)).thenReturn(Optional.of(rulingEntity));
         when(rulingStatusRepository.findByRulingId(rulingEntity)).thenReturn(Optional.of(buildRulingStatusEntityWithExpirationDateInPast()));
@@ -125,14 +129,14 @@ public class RulingServiceTest {
 
 
     @Test(expected = RulingNotFoundException.class)
-    public void getRuleResulWithRuleNotExistsThenThrowRulingNotFoundException() {
+    public void getRuleResulWithRuleNotExistsThenThrowRulingNotFoundException() throws JsonProcessingException {
         when(rulingRepository.findById(1)).thenReturn(Optional.empty());
 
         rulingService.getRuleResult(1);
     }
 
     @Test(expected = RulingNeverOpenForVoteException.class)
-    public void getRuleResulWithRuleNotOpenForVoteThenThrowRulingNotFoundException() {
+    public void getRuleResulWithRuleNotOpenForVoteThenThrowRulingNotFoundException() throws JsonProcessingException {
         RulingEntity rulingEntity = buildRulingEntity();
         when(rulingRepository.findById(1)).thenReturn(Optional.of(rulingEntity));
         when(rulingStatusRepository.findByRulingId(rulingEntity)).thenReturn(Optional.empty());

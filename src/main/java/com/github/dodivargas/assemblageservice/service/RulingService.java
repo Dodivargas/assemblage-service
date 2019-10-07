@@ -1,5 +1,6 @@
 package com.github.dodivargas.assemblageservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dodivargas.assemblageservice.dto.RuleResult;
 import com.github.dodivargas.assemblageservice.dto.Ruling;
@@ -8,6 +9,7 @@ import com.github.dodivargas.assemblageservice.entity.RulingEntity;
 import com.github.dodivargas.assemblageservice.entity.RulingStatusEntity;
 import com.github.dodivargas.assemblageservice.exception.RulingNeverOpenForVoteException;
 import com.github.dodivargas.assemblageservice.exception.RulingNotFoundException;
+import com.github.dodivargas.assemblageservice.rabbitmq.RulingProducer;
 import com.github.dodivargas.assemblageservice.repository.RulingRepository;
 import com.github.dodivargas.assemblageservice.repository.RulingStatusRepository;
 import com.github.dodivargas.assemblageservice.repository.VoteRepository;
@@ -30,13 +32,15 @@ public class RulingService {
     private RulingRepository rulingRepository;
     private RulingStatusRepository rulingStatusRepository;
     private VoteRepository voteRepository;
+    private RulingProducer rulingProducer;
     private ObjectMapper objectMapper;
     private Integer openedTimeInMinutes;
 
-    public RulingService(RulingRepository rulingRepository, RulingStatusRepository rulingStatusRepository, VoteRepository voteRepository, ObjectMapper objectMapper, @Value("${ruling.openedTimeInMinutes}") Integer openedTimeInMinutes) {
+    public RulingService(RulingRepository rulingRepository, RulingStatusRepository rulingStatusRepository, VoteRepository voteRepository, RulingProducer rulingProducer, ObjectMapper objectMapper, @Value("${ruling.openedTimeInMinutes}") Integer openedTimeInMinutes) {
         this.rulingRepository = rulingRepository;
         this.rulingStatusRepository = rulingStatusRepository;
         this.voteRepository = voteRepository;
+        this.rulingProducer = rulingProducer;
         this.objectMapper = objectMapper;
         this.openedTimeInMinutes = openedTimeInMinutes;
     }
@@ -56,7 +60,7 @@ public class RulingService {
     }
 
 
-    public RuleResult getRuleResult(Integer ruleId) {
+    public RuleResult getRuleResult(Integer ruleId) throws JsonProcessingException {
         logger.info("get ruling in database and Checking if ruling exists");
         RulingEntity rulingEntity = rulingRepository.findById(ruleId)
                 .orElseThrow(RulingNotFoundException::new);
@@ -65,13 +69,21 @@ public class RulingService {
                 .orElseThrow(RulingNeverOpenForVoteException::new);
         logger.info("calculating voting result for ruleid {}", ruleId);
         Boolean result = calculateVotesInRuling(ruleId);
+        ValidateExpirationDate(rulingStatusEntity, result);
+        RuleResult ruleResult = buildRuleResult(rulingEntity, rulingStatusEntity, result);
+        if (!rulingStatusEntity.getOpenForVote() && rulingStatusEntity.getResult() != null) {
+            rulingProducer.rulingResultProducer(objectMapper.writeValueAsString(ruleResult));
+        }
+        return ruleResult;
+    }
+
+    private void ValidateExpirationDate(RulingStatusEntity rulingStatusEntity, Boolean result) {
         if (expirationDateIsExceeded(rulingStatusEntity)) {
             rulingStatusEntity.setOpenForVote(false);
             rulingStatusEntity.setResult(result);
-            logger.error("Ruling close for votes because of expirationDate.");
+            logger.info("Ruling close for votes because of expirationDate.");
             rulingStatusRepository.save(rulingStatusEntity);
         }
-        return buildRuleResult(rulingEntity, rulingStatusEntity, result);
     }
 
     Boolean expirationDateIsExceeded(RulingStatusEntity rulingStatusEntity) {
