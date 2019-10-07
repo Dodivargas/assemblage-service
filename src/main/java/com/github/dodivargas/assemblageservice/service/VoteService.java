@@ -6,7 +6,7 @@ import com.github.dodivargas.assemblageservice.entity.RulingStatusEntity;
 import com.github.dodivargas.assemblageservice.entity.VoteEntity;
 import com.github.dodivargas.assemblageservice.exception.ClosedRulingException;
 import com.github.dodivargas.assemblageservice.exception.DuplicateVoteException;
-import com.github.dodivargas.assemblageservice.exception.RuleNotOpenForVoteException;
+import com.github.dodivargas.assemblageservice.exception.RulingNotOpenForVoteException;
 import com.github.dodivargas.assemblageservice.repository.RulingStatusRepository;
 import com.github.dodivargas.assemblageservice.repository.VoteRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -28,7 +28,7 @@ public class VoteService {
 
     public void createVote(Vote vote) {
         RulingStatusEntity rulingStatusEntity = rulingStatusRepository.findByRulingId(RulingEntity.RulingEntityBuilder.of().withId(vote.getRulingId()).build())
-                .orElseThrow(RuleNotOpenForVoteException::new);
+                .orElseThrow(RulingNotOpenForVoteException::new);
         validateRulingIsOpenForVote(rulingStatusEntity);
         if (rulingStatusEntity.getOpenForVote()) {
             saveVote(vote, rulingStatusEntity);

@@ -6,7 +6,7 @@ import com.github.dodivargas.assemblageservice.dto.Ruling;
 import com.github.dodivargas.assemblageservice.dto.Vote;
 import com.github.dodivargas.assemblageservice.entity.RulingEntity;
 import com.github.dodivargas.assemblageservice.entity.RulingStatusEntity;
-import com.github.dodivargas.assemblageservice.exception.RuleNotOpenForVoteException;
+import com.github.dodivargas.assemblageservice.exception.RulingNeverOpenForVoteException;
 import com.github.dodivargas.assemblageservice.exception.RulingNotFoundException;
 import com.github.dodivargas.assemblageservice.repository.RulingRepository;
 import com.github.dodivargas.assemblageservice.repository.RulingStatusRepository;
@@ -53,7 +53,7 @@ public class RulingService {
         RulingEntity rulingEntity = rulingRepository.findById(ruleId)
                 .orElseThrow(RulingNotFoundException::new);
         RulingStatusEntity rulingStatusEntity = rulingStatusRepository.findByRulingId(rulingEntity)
-                .orElseThrow(RuleNotOpenForVoteException::new);
+                .orElseThrow(RulingNeverOpenForVoteException::new);
         Boolean result = calculateVotesInRuling(ruleId);
         if (expirationDateIsExceeded(rulingStatusEntity)) {
             rulingStatusEntity.setOpenForVote(false);
@@ -83,7 +83,7 @@ public class RulingService {
     private List<Vote> getRuleAllVotesInRule(Integer rulingId) {
         return voteRepository.findAllByRulingStatusId(rulingId)
                 .stream()
-                .map(x -> objectMapper.convertValue(x, Vote.class))
+                .map(voteEntity -> objectMapper.convertValue(voteEntity, Vote.class))
                 .collect(Collectors.toList());
     }
 
