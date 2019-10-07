@@ -125,14 +125,14 @@ public class RulingServiceTest {
 
 
     @Test(expected = RulingNotFoundException.class)
-    public void getRuleResulWithRuleNotExistsThenThrowRulingNotFOundException() {
+    public void getRuleResulWithRuleNotExistsThenThrowRulingNotFoundException() {
         when(rulingRepository.findById(1)).thenReturn(Optional.empty());
 
         rulingService.getRuleResult(1);
     }
 
     @Test(expected = RulingNeverOpenForVoteException.class)
-    public void getRuleResulWithRuleNotOpenForVoteThenThrowRulingNotFOundException() {
+    public void getRuleResulWithRuleNotOpenForVoteThenThrowRulingNotFoundException() {
         RulingEntity rulingEntity = buildRulingEntity();
         when(rulingRepository.findById(1)).thenReturn(Optional.of(rulingEntity));
         when(rulingStatusRepository.findByRulingId(rulingEntity)).thenReturn(Optional.empty());

@@ -1,5 +1,6 @@
 package com.github.dodivargas.assemblageservice.stubs;
 
+import com.github.dodivargas.assemblageservice.dto.Vote;
 import com.github.dodivargas.assemblageservice.entity.RulingStatusEntity;
 import com.github.dodivargas.assemblageservice.entity.VoteEntity;
 
@@ -26,5 +27,13 @@ public class VoteStubs {
         voteEntityList.add(VoteEntity.VoteEntityBuilder.of().withTaxId("12345678911").withInFavor(true).withRulingId(rulingStatusEntity).build());
         voteEntityList.add(VoteEntity.VoteEntityBuilder.of().withTaxId("12345678912").withInFavor(false).withRulingId(rulingStatusEntity).build());
         return voteEntityList;
+    }
+
+    public static Vote buildVote() {
+        Vote vote = new Vote();
+        vote.setInFavor(true);
+        vote.setRulingId(1);
+        vote.setTaxId("12345678910");
+        return vote;
     }
 }
