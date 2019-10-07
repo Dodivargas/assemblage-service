@@ -11,6 +11,8 @@ import com.github.dodivargas.assemblageservice.exception.RulingNotFoundException
 import com.github.dodivargas.assemblageservice.repository.RulingRepository;
 import com.github.dodivargas.assemblageservice.repository.RulingStatusRepository;
 import com.github.dodivargas.assemblageservice.repository.VoteRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class RulingService {
+
+    private Logger logger = LoggerFactory.getLogger(VoteService.class);
 
     private RulingRepository rulingRepository;
     private RulingStatusRepository rulingStatusRepository;
@@ -38,26 +42,33 @@ public class RulingService {
     }
 
     public Ruling create(String name) {
+        logger.info("Starting creating rule with name {}.", name);
         return objectMapper.convertValue(rulingRepository.save(new RulingEntity(name)), Ruling.class);
     }
 
     public void openRuleForVoting(Integer rulingId, Integer openedTime) {
+        logger.info("get ruling in database and Checking if ruling exists");
         RulingEntity rulingEntity = rulingRepository.findById(rulingId)
                 .orElseThrow(RulingNotFoundException::new);
         RulingStatusEntity rulingStatusEntity = buildRulingStatusEntity(openedTime, rulingEntity);
+        logger.info("saving ruling open in database {}", rulingStatusEntity);
         rulingStatusRepository.save(rulingStatusEntity);
     }
 
 
     public RuleResult getRuleResult(Integer ruleId) {
+        logger.info("get ruling in database and Checking if ruling exists");
         RulingEntity rulingEntity = rulingRepository.findById(ruleId)
                 .orElseThrow(RulingNotFoundException::new);
+        logger.info("get open ruling in database and Checking if is opened");
         RulingStatusEntity rulingStatusEntity = rulingStatusRepository.findByRulingId(rulingEntity)
                 .orElseThrow(RulingNeverOpenForVoteException::new);
+        logger.info("calculating voting result for ruleid {}", ruleId);
         Boolean result = calculateVotesInRuling(ruleId);
         if (expirationDateIsExceeded(rulingStatusEntity)) {
             rulingStatusEntity.setOpenForVote(false);
             rulingStatusEntity.setResult(result);
+            logger.error("Ruling close for votes because of expirationDate.");
             rulingStatusRepository.save(rulingStatusEntity);
         }
         return buildRuleResult(rulingEntity, rulingStatusEntity, result);
